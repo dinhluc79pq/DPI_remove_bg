@@ -1,0 +1,5 @@
+static/backups/*
+static/results/*
+static/input/*
+dpi_env
+model/pytorch_resnet101.pth

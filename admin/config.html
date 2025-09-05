@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Quản lý Config</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+  <div class="bg-white shadow-xl rounded-2xl p-8 w-full max-w-3xl">
+    <h1 class="text-2xl font-bold text-gray-700 mb-6 text-center">Cấu hình đường dẫn</h1>
+
+    <form id="config-form" class="space-y-6">
+      <!-- Model Path -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-600 mb-2">File Model Path</label>
+        <div class="flex gap-2">
+          <input id="model_path" name="model_path" type="text"
+                 class="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                 placeholder="Chưa chọn...">
+          <button type="button" data-target="model_path"
+                  class="browse-file-btn bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg">
+            Browse
+          </button>
+        </div>
+      </div>
+
+      <!-- Background Path -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-600 mb-2">File Background Path</label>
+        <div class="flex gap-2">
+          <input id="image_bgr_path" name="image_bgr_path" type="text"
+                 class="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                 placeholder="Chưa chọn...">
+          <button type="button" data-target="image_bgr_path"
+                  class="browse-file-btn bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg">
+            Browse
+          </button>
+        </div>
+      </div>
+
+      <!-- Image Source Path -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-600 mb-2">Folder Image Path</label>
+        <div class="flex gap-2">
+          <input id="image_src_path" name="image_src_path" type="text"
+                 class="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                 placeholder="Chưa chọn...">
+          <button type="button" data-target="image_src_path"
+                  class="browse-btn bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg">
+            Browse
+          </button>
+        </div>
+      </div>
+
+      <!-- Output Path -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-600 mb-2">Folder Result Path</label>
+        <div class="flex gap-2">
+          <input id="output_path" name="output_path" type="text"
+                 class="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                 placeholder="Chưa chọn...">
+          <button type="button" data-target="output_path"
+                  class="browse-btn bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg">
+            Browse
+          </button>
+        </div>
+      </div>
+
+      <!-- Backup Path -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-600 mb-2">Folder Backup Path</label>
+        <div class="flex gap-2">
+          <input id="backup_path" name="backup_path" type="text"
+                 class="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                 placeholder="Chưa chọn...">
+          <button type="button" data-target="backup_path"
+                  class="browse-btn bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg">
+            Browse
+          </button>
+        </div>
+      </div>
+
+      <button id="save-btn" type="button"
+              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg">
+        💾 Lưu vào config.ini
+      </button>
+
+      <p id="status" class="text-sm mt-2"></p>
+    </form>
+  </div>
+
+  <script>
+    async function initConfig() {
+      try {
+        const config = await window.pywebview.api.load_config();
+        console.log("Config loaded:", config);
+
+        // Điền giá trị vào các input
+        if (config.model_path) {
+          $("#model_path").val(config.model_path);
+        }
+        if (config.image_src_path) {
+          $("#image_src_path").val(config.image_src_path);
+        }
+        if (config.image_bgr_path) {
+          $("#image_bgr_path").val(config.image_bgr_path);
+        }
+        if (config.output_path) {
+          $("#output_path").val(config.output_path);
+        }
+        if (config.backup_path) {
+          $("#backup_path").val(config.backup_path);
+        }
+      } catch (e) {
+        console.error("Lỗi load config:", e);
+      }
+    }
+
+    $(document).ready(function() {
+      initConfig();
+    });
+
+    // Gán cho tất cả nút Browse
+    $(document).on("click", ".browse-btn", async function () {
+      const target = $(this).data("target");
+      try {
+        const chosen = await window.pywebview.api.pick_dir();
+        if (chosen) {
+          $("#" + target).val(chosen); // Absolute path trả từ Python
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    });
+
+    $(document).on("click", ".browse-file-btn", async function () {
+      const target = $(this).data("target");
+      try {
+        const chosen = await window.pywebview.api.pick_file_model();
+        if (chosen) {
+          $("#" + target).val(chosen);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    });
+
+    // Lưu config.ini
+    $("#save-btn").on("click", async function () {
+      const data = {
+        model_path: $("#model_path").val().trim(),
+        image_src_path: $("#image_src_path").val().trim(),
+        image_bgr_path: $("#image_bgr_path").val().trim(),
+        output_path: $("#output_path").val().trim(),
+        backup_path: $("#backup_path").val().trim(),
+      };
+      try {
+        const res = await window.pywebview.api.save_paths(JSON.stringify(data));
+        $("#status").text(res.message)
+                    .removeClass()
+                    .addClass(res.ok ? "text-green-600" : "text-red-600");
+      } catch (e) {
+        $("#status").text("Lỗi: " + e).removeClass().addClass("text-red-600");
+      }
+    });
+  </script>
+</body>
+</html>

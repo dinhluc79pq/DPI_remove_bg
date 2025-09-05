@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chỉnh sửa ảnh lỗi</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-6">
+
+    <div class="bg-white shadow-xl rounded-2xl p-6 w-full max-w-6xl">
+        <!-- Tiêu đề -->
+        <p class="text-xl font-semibold text-gray-700 mb-4 text-center">
+            REMOVE GREEN BACKGROUND
+        </p>
+
+        <!-- Container -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <!-- Khung ảnh gốc -->
+            <div class="border rounded-xl p-4 shadow-sm bg-gray-50">
+                <div class="flex gap-2 mb-3">
+                    <input type="text" id="err_imgNumber" placeholder="Nhập số hình ảnh" required
+                        class="flex-1 px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                    <button id="find_img"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                </div>
+                <p id="err_result" class="text-sm text-gray-600 mb-2"></p>
+                <div id="err_imageContainer"
+                    class="w-full flex flex-col justify-end items-center border-2 border-dashed rounded-lg bg-white text-gray-300">
+                    <span class="h-full min-h-[20rem] mt-4">Ảnh gốc sẽ hiển thị ở đây</span>
+                </div>
+            </div>
+
+            <!-- Khung ảnh sau khi sửa -->
+            <div class="border rounded-xl p-4 shadow-sm bg-gray-50">
+                <div class="flex justify-between gap-3 mb-3">
+
+                    <!-- Nút Xóa nền thừa -->
+                    <button id="remove_extra_bg"
+                        class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">
+                        Xóa nền thừa
+                    </button>
+
+                    <!-- Nút Mở trong Paint 3D -->
+                    <button id="open_paint3d"
+                        class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
+                        Paint 3D
+                    </button>
+
+                    <!-- Nút Reload hình ảnh -->
+                    <button id="reload_img"
+                        class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition">
+                        Reload hình ảnh
+                    </button>
+                </div>
+                <div id="err_imageContainer1"
+                    class="w-full flex flex-col justify-end items-center border-2 border-dashed rounded-lg bg-white text-gray-300">
+                    <span class="h-full min-h-[20rem] mt-4">Ảnh sau khi xử lý sẽ hiển thị ở đây</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nút tách nền -->
+        <div class="mt-6 text-center">
+            <button
+                class="btn_submit px-6 py-3 bg-green-600 text-white rounded-xl shadow-md hover:bg-green-700 transition w-full"
+                id="remove_bg">
+                Tách nền
+            </button>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+
+</html>

@@ -1,0 +1,7 @@
+Flask
+pywebview
+configparser
+pillow
+torch
+torchvision
+torchaudio
