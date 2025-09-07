@@ -20,6 +20,7 @@ image_bgr_path = config["PATHS"]["image_bgr_path"]
 output_path = config["PATHS"]["output_path"]
 backup_path = config["PATHS"]["backup_path"]
 save_temp_path = config["PATHS"]["save_temp_path"]
+paint3d_path = config["PATHS"]["paint3d_path"]
 
 
 @app.route("/")
@@ -92,8 +93,6 @@ def remove_bg():
 def open_in_paint3d():
     img_number = request.form.get("img_number")
     file_path = os.path.abspath(os.path.join(image_src_path, f"img{img_number}.png"))
-
-    paint3d_path = r"C:\Program Files\WindowsApps\Microsoft.MSPaint_6.2410.13017.0_x64__8wekyb3d8bbwe\PaintStudio.View.exe"
 
     if os.path.exists(file_path):
         try:
@@ -173,7 +172,7 @@ def crop_border_2():
         pixels = img.load()
 
         width, height = img.size
-        margin = 100 
+        margin = 130
 
         for y in range(height):
             for x in range(width):
