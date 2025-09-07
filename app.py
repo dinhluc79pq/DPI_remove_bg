@@ -32,19 +32,25 @@ def find_image():
     if not img_number:
         return jsonify({"result": False})
 
-    # Tạo đường dẫn file
     result_path = os.path.join(output_path, f"img{img_number}.png")
     file_path = os.path.join(image_src_path, f"img{img_number}.png")
     
     if os.path.exists(result_path):
-        return jsonify({"result": True, "path_img": f"/{result_path}"})
+        return jsonify({"result": True, "path_img": {result_path}})
 
     elif os.path.exists(file_path):
-        return jsonify({"result": True, "path_img": f"/{file_path}"})
+        if os.path.exists(file_path):
+            output_dir = os.path.join("static", "input")
+            os.makedirs(output_dir, exist_ok=True)
+
+            output_file = os.path.join(output_dir, f"img{img_number}.png")
+
+            shutil.copyfile(file_path, output_file)
+            return jsonify({"result": True, "path_img": {output_file}})
     
     else:
         return jsonify({"result": False})
-     
+    
 @app.route("/remove_bg", methods=["POST"])
 def remove_bg():
     img_number = request.form.get("img_number")
