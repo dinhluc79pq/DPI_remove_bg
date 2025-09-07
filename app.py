@@ -111,17 +111,18 @@ def open_in_paint3d():
 @app.route("/crop_border", methods=["POST"])
 def crop_border():
     img_number = request.form.get("img_number")
+    file_path = output_path + "/" + f"img{img_number}.png"
 
     save_img_path = os.path.join(image_src_path, f"img{img_number}.png")
     os.makedirs(save_temp_path, exist_ok=True)
     result_path = os.path.join(save_temp_path, f"img{img_number}.png")
     
 
-    if not os.path.exists(result_path):
+    if not os.path.exists(file_path):
         return jsonify({"result": False})
 
     try:
-        img = Image.open(result_path).convert("RGBA")
+        img = Image.open(file_path).convert("RGBA")
         pixels = img.load()
 
         width, height = img.size
@@ -151,17 +152,18 @@ def crop_border():
 @app.route("/crop_border_2", methods=["POST"])
 def crop_border_2():
     img_number = request.form.get("img_number")
-    
+    file_path = output_path + "/" + f"img{img_number}.png"
+
     save_img_path = os.path.join(image_src_path, f"img{img_number}.png")
     os.makedirs(save_temp_path, exist_ok=True)
     result_path = os.path.join(save_temp_path, f"img{img_number}.png")
     
 
-    if not os.path.exists(result_path):
+    if not os.path.exists(file_path):
         return jsonify({"result": False})
 
     try:
-        img = Image.open(result_path).convert("RGBA")
+        img = Image.open(file_path).convert("RGBA")
         pixels = img.load()
 
         width, height = img.size
@@ -190,6 +192,7 @@ def reload_img():
     backup_img_path = os.path.join(backup_path, f"img{img_number}.png")
     save_img_path = os.path.join(image_src_path, f"img{img_number}.png")
 
+    os.remove(save_img_path)
     shutil.copy2(backup_img_path, save_img_path)
 
     if not os.path.exists(backup_path):
