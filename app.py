@@ -28,31 +28,24 @@ def index():
 
 @app.route("/find_image", methods=["POST"])
 def find_image():
-    img_number = request.form.get("img_number")  # Lấy số từ Ajax
+    img_number = request.form.get("img_number") 
     if not img_number:
         return jsonify({"result": False})
 
     # Tạo đường dẫn file
-    file_path = os.path.join(image_src_path, f"img{img_number}.png")
-
-    if os.path.exists(file_path):
-        # Tạo thư mục đích nếu chưa có
-        output_dir = os.path.join("static", "input")
-        os.makedirs(output_dir, exist_ok=True)
-
-        # Đường dẫn đích
-        output_file = os.path.join(output_dir, f"img{img_number}.png")
-
-        # Copy file (tối ưu bộ nhớ, không load toàn bộ file vào RAM)
-        shutil.copyfile(file_path, output_file)
-
-        return jsonify({
-            "result": True,
-            "path_img": f"/{output_file}"  # Flask sẽ serve file trong static/
-        })
-    else:
-        return jsonify({"result": False})
+    file_path = os.path.join(output_path, f"img{img_number}.png")
     
+    if not os.path.exists(file_path):
+        file_path = os.path.join(image_src_path, f"img{img_number}.png")
+
+        if os.path.exists(file_path):
+            return jsonify({"result": True, "path_img": f"/{file_path}"})
+        
+        else:
+            return jsonify({"result": False})
+        
+    return jsonify({"result": True, "path_img": f"/{file_path}"})
+     
 @app.route("/remove_bg", methods=["POST"])
 def remove_bg():
     img_number = request.form.get("img_number")
@@ -114,9 +107,12 @@ def crop_border():
     file_path = output_path + "/" + f"img{img_number}.png"
 
     save_img_path = os.path.join(image_src_path, f"img{img_number}.png")
+
+    os.makedirs(output_path, exist_ok=True)
+    result_path = os.path.join(output_path, f"img{img_number}.png")
+
     os.makedirs(save_temp_path, exist_ok=True)
-    result_path = os.path.join(save_temp_path, f"img{img_number}.png")
-    
+    temp_path = os.path.join(save_temp_path, f"img{img_number}.png")
 
     if not os.path.exists(file_path):
         return jsonify({"result": False})
@@ -143,6 +139,7 @@ def crop_border():
         # Lưu ảnh mới
         img.save(save_img_path, "PNG")
         img.save(result_path, "PNG")
+        img.save(temp_path, "PNG")
 
         return jsonify({"result": True, "path_img": result_path})
     except Exception as e:
@@ -155,8 +152,12 @@ def crop_border_2():
     file_path = output_path + "/" + f"img{img_number}.png"
 
     save_img_path = os.path.join(image_src_path, f"img{img_number}.png")
+    
+    os.makedirs(output_path, exist_ok=True)
+    result_path = os.path.join(output_path, f"img{img_number}.png")
+
     os.makedirs(save_temp_path, exist_ok=True)
-    result_path = os.path.join(save_temp_path, f"img{img_number}.png")
+    temp_path = os.path.join(save_temp_path, f"img{img_number}.png")
     
 
     if not os.path.exists(file_path):
@@ -179,6 +180,7 @@ def crop_border_2():
         # Lưu ảnh mới
         img.save(save_img_path, "PNG")
         img.save(result_path, "PNG")
+        img.save(temp_path, "PNG")
 
         return jsonify({"result": True, "path_img": result_path})
     except Exception as e:
