@@ -146,7 +146,7 @@ def crop_border():
         img.save(result_path, "PNG")
         img.save(temp_path, "PNG")
 
-        return jsonify({"result": True, "path_img": result_path})
+        return jsonify({"result": True, "path_img": temp_path})
     except Exception as e:
         print("Crop border error:", e)
         return jsonify({"result": False})
@@ -187,7 +187,7 @@ def crop_border_2():
         img.save(result_path, "PNG")
         img.save(temp_path, "PNG")
 
-        return jsonify({"result": True, "path_img": result_path})
+        return jsonify({"result": True, "path_img": temp_path})
     except Exception as e:
         print("Crop border error:", e)
         return jsonify({"result": False})
