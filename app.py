@@ -57,10 +57,10 @@ def remove_bg():
     img_number = request.form.get("img_number")
 
     file_path = os.path.join(image_src_path, "RawFiles", f"img{img_number}.jpg")
+    os.makedirs(output_path, exist_ok=True)
     result_path = os.path.join(output_path, f"img{img_number}.png")
-    os.makedirs(result_path, exist_ok=True)
+    os.makedirs(backup_path, exist_ok=True)
     backup_img_path = os.path.join(backup_path, f"img{img_number}.png")
-    os.makedirs(backup_img_path, exist_ok=True)
     save_img_path = os.path.join(image_src_path, f"img{img_number}.png")
 
     if not os.path.exists(backup_img_path) and os.path.exists(save_img_path):
@@ -113,9 +113,9 @@ def crop_border():
     file_path = output_path + "/" + f"img{img_number}.png"
 
     save_img_path = os.path.join(image_src_path, f"img{img_number}.png")
-    os.makedirs(save_img_path, exist_ok=True)
+    os.makedirs(output_path, exist_ok=True)
     result_path = os.path.join(output_path, f"img{img_number}.png")
-    os.makedirs(result_path, exist_ok=True)
+    
 
     if not os.path.exists(file_path):
         return jsonify({"result": False})
