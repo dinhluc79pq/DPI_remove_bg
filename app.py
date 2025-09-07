@@ -19,6 +19,7 @@ model_path = config["PATHS"]["model_path"]
 image_bgr_path = config["PATHS"]["image_bgr_path"]
 output_path = config["PATHS"]["output_path"]
 backup_path = config["PATHS"]["backup_path"]
+save_temp_path = config["PATHS"]["save_temp_path"]
 
 
 @app.route("/")
@@ -110,18 +111,17 @@ def open_in_paint3d():
 @app.route("/crop_border", methods=["POST"])
 def crop_border():
     img_number = request.form.get("img_number")
-    file_path = output_path + "/" + f"img{img_number}.png"
 
     save_img_path = os.path.join(image_src_path, f"img{img_number}.png")
-    os.makedirs(output_path, exist_ok=True)
-    result_path = os.path.join(output_path, f"img{img_number}.png")
+    os.makedirs(save_temp_path, exist_ok=True)
+    result_path = os.path.join(save_temp_path, f"img{img_number}.png")
     
 
-    if not os.path.exists(file_path):
+    if not os.path.exists(result_path):
         return jsonify({"result": False})
 
     try:
-        img = Image.open(file_path).convert("RGBA")
+        img = Image.open(result_path).convert("RGBA")
         pixels = img.load()
 
         width, height = img.size
@@ -151,18 +151,17 @@ def crop_border():
 @app.route("/crop_border_2", methods=["POST"])
 def crop_border_2():
     img_number = request.form.get("img_number")
-    file_path = output_path + "/" + f"img{img_number}.png"
-
+    
     save_img_path = os.path.join(image_src_path, f"img{img_number}.png")
-    os.makedirs(output_path, exist_ok=True)
-    result_path = os.path.join(output_path, f"img{img_number}.png")
+    os.makedirs(save_temp_path, exist_ok=True)
+    result_path = os.path.join(save_temp_path, f"img{img_number}.png")
     
 
-    if not os.path.exists(file_path):
+    if not os.path.exists(result_path):
         return jsonify({"result": False})
 
     try:
-        img = Image.open(file_path).convert("RGBA")
+        img = Image.open(result_path).convert("RGBA")
         pixels = img.load()
 
         width, height = img.size
@@ -170,13 +169,8 @@ def crop_border_2():
 
         for y in range(height):
             for x in range(width):
-                # Xóa viền trái, phải
-                if x < margin or x >= width - margin:
-                    r, g, b, a = pixels[x, y]
-                    pixels[x, y] = (r, g, b, 0)
-
                 # Xóa viền trên
-                elif y < margin:
+                if y < margin:
                     r, g, b, a = pixels[x, y]
                     pixels[x, y] = (r, g, b, 0)
 
