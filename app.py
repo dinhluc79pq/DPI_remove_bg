@@ -33,18 +33,17 @@ def find_image():
         return jsonify({"result": False})
 
     # Tạo đường dẫn file
-    file_path = os.path.join(output_path, f"img{img_number}.png")
+    result_path = os.path.join(output_path, f"img{img_number}.png")
+    file_path = os.path.join(image_src_path, f"img{img_number}.png")
     
-    if not os.path.exists(file_path):
-        file_path = os.path.join(image_src_path, f"img{img_number}.png")
+    if os.path.exists(result_path):
+        return jsonify({"result": True, "path_img": f"/{result_path}"})
 
-        if os.path.exists(file_path):
-            return jsonify({"result": True, "path_img": f"/{file_path}"})
-        
-        else:
-            return jsonify({"result": False})
-        
-    return jsonify({"result": True, "path_img": f"/{file_path}"})
+    elif os.path.exists(file_path):
+        return jsonify({"result": True, "path_img": f"/{file_path}"})
+    
+    else:
+        return jsonify({"result": False})
      
 @app.route("/remove_bg", methods=["POST"])
 def remove_bg():
@@ -191,11 +190,17 @@ def crop_border_2():
 def reload_img():
     img_number = request.form.get("img_number")
 
+    os.makedirs(backup_path, exist_ok=True)
     backup_img_path = os.path.join(backup_path, f"img{img_number}.png")
+
+    os.makedirs(output_path, exist_ok=True)
+    result_path = os.path.join(output_path, f"img{img_number}.png")
+
     save_img_path = os.path.join(image_src_path, f"img{img_number}.png")
 
     os.remove(save_img_path)
     shutil.copy2(backup_img_path, save_img_path)
+    shutil.copy2(backup_img_path, result_path)
 
     if not os.path.exists(backup_path):
         return jsonify({"result": False})
