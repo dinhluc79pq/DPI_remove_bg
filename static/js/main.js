@@ -187,6 +187,31 @@ $(document).ready(function() {
         });
     });
 
+    $("#center_object").on("click", function () {
+        let img_number = $("#err_imgNumber").val();
 
+        if (!img_number) {
+            alert("⚠ Vui lòng nhập số hình ảnh trước.");
+            return;
+        }
+
+        $.ajax({
+            url: "/center_object",
+            method: "POST",
+            data: { img_number: img_number },
+            success: function (response) {
+                if (response.result) {
+                    $("#err_imageContainer1").html(
+                        `<img src="${response.path_img}" class="w-full rounded-lg shadow-md">`
+                    );
+                } else {
+                    alert("❌ Lỗi: " + response.error);
+                }
+            },
+            error: function () {
+                alert("❌ Có lỗi khi gửi yêu cầu căn giữa.");
+            }
+        });
+    });
 
 });

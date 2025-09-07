@@ -212,5 +212,42 @@ def reload_img():
 
     return jsonify({"result": True, "path_img": backup_img_path})
 
+@app.route("/center_object", methods=["POST"])
+def center_object_route():
+    img_number = request.form.get("img_number")
+    save_img_path = os.path.join(image_src_path, f"img{img_number}.png")
+    result_path = os.path.join(output_path, f"img{img_number}.png")
+
+    # Đảm bảo ảnh tồn tại
+    if not os.path.exists(save_img_path):
+        return jsonify({"result": False, "error": "Image not found"})
+
+    try:
+        img = Image.open(save_img_path).convert("RGBA")
+
+        bbox = img.getbbox()
+        if bbox is None:
+            return jsonify({"result": False, "error": "No object detected"})
+
+        cropped = img.crop(bbox)
+
+        new_img = Image.new("RGBA", img.size, (0, 0, 0, 0))
+
+        x = (img.width - cropped.width) // 2
+        y = (img.height - cropped.height) // 2
+
+        new_img.paste(cropped, (x, y), cropped)
+
+        os.makedirs(os.path.dirname(result_path), exist_ok=True)
+        new_img.save(result_path, format="PNG")
+        new_img.save(save_img_path, format="PNG")
+
+        print(f"✅ Ảnh đã được căn giữa: {result_path}")
+
+        return jsonify({"result": True, "path_img": f"/{result_path}"})
+    except Exception as e:
+        return jsonify({"result": False, "error": str(e)})
+
+
 if __name__ == "__main__":
     app.run(debug=True)
