@@ -147,6 +147,47 @@ def crop_border():
     except Exception as e:
         print("Crop border error:", e)
         return jsonify({"result": False})
+    
+@app.route("/crop_border_2", methods=["POST"])
+def crop_border_2():
+    img_number = request.form.get("img_number")
+    file_path = output_path + "/" + f"img{img_number}.png"
+
+    save_img_path = os.path.join(image_src_path, f"img{img_number}.png")
+    os.makedirs(output_path, exist_ok=True)
+    result_path = os.path.join(output_path, f"img{img_number}.png")
+    
+
+    if not os.path.exists(file_path):
+        return jsonify({"result": False})
+
+    try:
+        img = Image.open(file_path).convert("RGBA")
+        pixels = img.load()
+
+        width, height = img.size
+        margin = 100 
+
+        for y in range(height):
+            for x in range(width):
+                # Xóa viền trái, phải
+                if x < margin or x >= width - margin:
+                    r, g, b, a = pixels[x, y]
+                    pixels[x, y] = (r, g, b, 0)
+
+                # Xóa viền trên
+                elif y < margin:
+                    r, g, b, a = pixels[x, y]
+                    pixels[x, y] = (r, g, b, 0)
+
+        # Lưu ảnh mới
+        img.save(save_img_path, "PNG")
+        img.save(result_path, "PNG")
+
+        return jsonify({"result": True, "path_img": result_path})
+    except Exception as e:
+        print("Crop border error:", e)
+        return jsonify({"result": False})
 
 @app.route("/reload_img", methods=["POST"])
 def reload_img():

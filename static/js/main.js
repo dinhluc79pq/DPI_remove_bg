@@ -109,8 +109,41 @@ $(document).ready(function() {
             return;
         }
 
+        $("#err_imageContainer1").html(
+            `<span class="h-full min-h-[20rem] mt-4">Ảnh sau khi xử lý sẽ hiển thị ở đây</span>`
+        );
+
         $.ajax({
             url: "/crop_border",
+            type: "POST",
+            data: { img_number: img_number },
+            success: function (response) {
+                if (response.result) {
+                    $("#err_imageContainer1").html(
+                        `<img src="${response.path_img}" class="w-full rounded-lg shadow-md">`
+                    );
+                } else {
+                    alert("Không tìm thấy hình ảnh để cắt viền!");
+                }
+            },
+            error: function () {
+                alert("Lỗi khi gọi server để cắt viền!");
+            }
+        });
+    });
+
+    $("#remove_extra_bg_2").click(function () {
+        let img_number = $("#err_imgNumber").val();
+        if (img_number.trim() === "") {
+            alert("Vui lòng nhập số hình ảnh trước!");
+            return;
+        }
+        $("#err_imageContainer1").html(
+            `<span class="h-full min-h-[20rem] mt-4">Ảnh sau khi xử lý sẽ hiển thị ở đây</span>`
+        );
+
+        $.ajax({
+            url: "/crop_border_2",
             type: "POST",
             data: { img_number: img_number },
             success: function (response) {
