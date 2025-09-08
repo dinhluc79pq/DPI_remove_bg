@@ -109,7 +109,7 @@ def open_in_paint3d():
 @app.route("/crop_border", methods=["POST"])
 def crop_border():
     img_number = request.form.get("img_number")
-    file_path = output_path + "/" + f"img{img_number}.png"
+    file_path = image_src_path + "/" + f"img{img_number}.png"
 
     save_img_path = os.path.join(image_src_path, f"img{img_number}.png")
 
@@ -154,7 +154,7 @@ def crop_border():
 @app.route("/crop_border_2", methods=["POST"])
 def crop_border_2():
     img_number = request.form.get("img_number")
-    file_path = output_path + "/" + f"img{img_number}.png"
+    file_path = image_src_path + "/" + f"img{img_number}.png"
 
     save_img_path = os.path.join(image_src_path, f"img{img_number}.png")
     
