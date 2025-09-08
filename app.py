@@ -60,13 +60,8 @@ def remove_bg():
     file_path = os.path.join(image_src_path, "RawFiles", f"img{img_number}.jpg")
     os.makedirs(output_path, exist_ok=True)
     result_path = os.path.join(output_path, f"img{img_number}.png")
-    os.makedirs(backup_path, exist_ok=True)
-    backup_img_path = os.path.join(backup_path, f"img{img_number}.png")
-    save_img_path = os.path.join(image_src_path, f"img{img_number}.png")
 
-    if not os.path.exists(backup_img_path) and os.path.exists(save_img_path):
-        shutil.copy2(save_img_path, backup_img_path)
-        print(f"Đã sao lưu ảnh gốc tại: {backup_img_path}")
+    backup_images(img_number)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     transform = transforms.Compose([transforms.ToTensor()])
@@ -119,6 +114,8 @@ def crop_border():
     os.makedirs(save_temp_path, exist_ok=True)
     temp_path = os.path.join(save_temp_path, f"img{img_number}.png")
 
+    backup_images(img_number)
+
     if not os.path.exists(file_path):
         return jsonify({"result": False})
 
@@ -164,6 +161,7 @@ def crop_border_2():
     os.makedirs(save_temp_path, exist_ok=True)
     temp_path = os.path.join(save_temp_path, f"img{img_number}.png")
     
+    backup_images(img_number)
 
     if not os.path.exists(file_path):
         return jsonify({"result": False})
@@ -249,6 +247,14 @@ def center_object_route():
     except Exception as e:
         return jsonify({"result": False, "error": str(e)})
 
+def backup_images(img_number):
+    os.makedirs(backup_path, exist_ok=True)
+    backup_img_path = os.path.join(backup_path, f"img{img_number}.png")
+    save_img_path = os.path.join(image_src_path, f"img{img_number}.png")
+
+    if not os.path.exists(backup_img_path) and os.path.exists(save_img_path):
+        shutil.copy2(save_img_path, backup_img_path)
+        print(f"Đã sao lưu ảnh gốc tại: {backup_img_path}")
 
 if __name__ == "__main__":
     app.run(port=port_flask, debug=True)
