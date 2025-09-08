@@ -14,6 +14,7 @@ app = Flask(__name__)
 # Đọc config.ini
 config = configparser.ConfigParser()
 config.read("config.ini")
+port_flask = config["PATHS"]["port"]
 image_src_path = config["PATHS"]["image_src_path"]
 model_path = config["PATHS"]["model_path"]
 image_bgr_path = config["PATHS"]["image_bgr_path"]
@@ -250,4 +251,4 @@ def center_object_route():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(port=port_flask, debug=True)
