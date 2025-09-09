@@ -61,7 +61,7 @@ def remove_bg():
     os.makedirs(output_path, exist_ok=True)
     result_path = os.path.join(output_path, f"img{img_number}.png")
 
-    backup_images(img_number)
+    save_img_path = backup_images(img_number)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     transform = transforms.Compose([transforms.ToTensor()])
@@ -255,6 +255,8 @@ def backup_images(img_number):
     if not os.path.exists(backup_img_path) and os.path.exists(save_img_path):
         shutil.copy2(save_img_path, backup_img_path)
         print(f"Đã sao lưu ảnh gốc tại: {backup_img_path}")
+    
+    return save_img_path
 
 if __name__ == "__main__":
     app.run(port=port_flask, debug=True)
