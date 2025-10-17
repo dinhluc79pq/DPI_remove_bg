@@ -195,6 +195,8 @@ $(document).ready(function() {
             return;
         }
 
+        $("#err_imageContainer1").html(`<span class="h-full min-h-[20rem] mt-4">Ảnh sau khi xử lý sẽ hiển thị ở đây</span>`)
+
         $.ajax({
             url: "/center_object",
             method: "POST",
