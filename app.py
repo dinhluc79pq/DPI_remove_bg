@@ -10,6 +10,7 @@ from torchvision.transforms.functional import to_pil_image
 from flask import Flask, render_template, request, jsonify
 from model import MattingRefine
 from PIL import Image
+from shutil import copyfile
 
 
 app = Flask(__name__)
@@ -334,6 +335,145 @@ def backup_images(img_number):
         print(f"Đã sao lưu ảnh gốc tại: {backup_img_path}")
     
     return save_img_path
+
+png_img_path = ''
+img_name_temporary = ''
+png_temp_path_add_check = ''
+# Route API để kiểm tra sự tồn tại của hình ảnh
+@app.route('/check_image', methods=['POST'])
+def check_image():
+    global png_img_path, img_name_temporary, png_temp_path_add_check
+
+    img_number_received = request.json.get('img_number')  # Nhận số từ frontend
+
+    # save name image to use later
+    img_name_temporary = img_number_received
+
+    # đường dẫn thực tế tới hình ảnh
+    file_path = os.path.join(r'\\PRINTSERVER1\CapImages', f'img{img_number_received}.png')
+
+    # check if it exists
+    print(file_path)
+    checked = os.path.isfile(file_path)
+    if checked:
+
+        # if exists, copy to project directory
+        png_temp_path_add_check = f'static/temp/add_imgs/{img_number_received}.png'
+        copyfile(file_path, png_temp_path_add_check)
+
+        # use later var
+        png_img_path = file_path
+        return jsonify({'path': png_temp_path_add_check})
+    else:
+        return 'error'
+
+destination_path = ''
+existed_dir_path = ''
+destination_path_added = ''
+@app.route('/find_directory', methods=['POST'])
+def find_directory():
+    global destination_path_added, destination_path, existed_dir_path
+
+    base_folder = r'\\PRINTSERVER1\Customers'
+    last_five_digits = request.form['last_five_digits']
+
+    # Lấy danh sách tất cả các thư mục trong thư mục gốc
+    all_folders = [f for f in os.listdir(base_folder) if os.path.isdir(os.path.join(base_folder, f))]
+
+    # Tìm kiếm thư mục tương ứng với 5 hoặc 6 số cuối
+    if len(last_five_digits) <= 5:
+        matching_folder = next((folder for folder in all_folders if folder[-5:] == last_five_digits), None)
+        existed_dir_path = matching_folder
+    else:
+        matching_folder = next((folder for folder in all_folders if folder[-6:] == last_five_digits), None)
+        existed_dir_path = matching_folder
+
+    if matching_folder:
+        # destination path to add after created
+        destination_path_added = base_folder + '\\' + matching_folder
+
+        img_path = base_folder + "/" + matching_folder + '/uploaded_14.jpg'
+        img_path2 = base_folder + "/" + matching_folder + '/uploaded_24.jpg'
+        destination_path = f'static/temp/add_imgs/{last_five_digits}.jpg'
+
+        print(last_five_digits, img_path, destination_path)
+        try:
+            checked = os.path.isfile(img_path)
+            if checked:
+                copyfile(img_path, destination_path)
+            else:
+                copyfile(img_path2, destination_path)
+            # Thực hiện sao chép tệp tin
+            # copyfile(img_path, destination_path)
+
+            # Trả về đường dẫn mới thông qua JSON
+            return jsonify({"file_path": destination_path, "msg": "Hình ảnh được tìm thấy"})
+        except Exception as e:
+            print(e)
+            return jsonify({"msg": 'Cant handle image file'})
+    else:
+        print('cant find this photos')
+        return jsonify({"msg": "Hình ảnh không được tìm thấy !"})
+
+@app.route('/process', methods=['POST'])
+def process():
+    # check if it already added before adding
+    flag = True
+    # print('existed dir to adding', existed_dir_path)   # existed dir to adding 010HGQ41559
+    # print('img number to adding', img_name_temporary)  # img number to adding 10058
+
+    customer_path = r''
+
+    existed_file_check = f'\\PRINTSERVER1\\Customers\\{existed_dir_path}\\{img_name_temporary}_bg3.png'
+    existed_file_check_uploaded = f'\\PRINTSERVER1\\Customers\\{existed_dir_path}\\uploaded_{img_name_temporary}_bg3.png'  # uploaded_32564_bg3.png
+
+    flag_file_check = os.path.isfile(existed_file_check)
+    flag_file_uploaded_check = os.path.isfile(existed_file_check_uploaded)
+    if flag_file_check:
+        flag = False
+    elif flag_file_uploaded_check:
+        flag = False
+    else:
+        flag = True
+
+    # check function before adding, flag = True, run function, else return ADDED
+    if flag:
+        if png_img_path != '':
+
+            # Mở tệp ảnh đối tượng
+            obj = Image.open(png_img_path).convert("RGBA")
+            
+            # Mở tệp ảnh các nền khác
+            obj_other_alpha = obj.split()[3]
+
+            bg1 = Image.open("static/background/BKG1.jpg").convert("RGBA")
+            bg2 = Image.open("static/background/BKG2.jpg").convert("RGBA")
+            bg3 = Image.open("static/background/BKG3.jpg").convert("RGBA")
+            bg4 = Image.open("static/background/BKG4.jpg").convert("RGBA")
+            
+
+            # Chỉnh vị trí của đối tượng trên các nền khác
+            x_position_other_bg = 400  # horizontal position
+            y_position_other_bg = 250  # vertical position
+
+            bg1.paste(obj, (x_position_other_bg, y_position_other_bg), obj_other_alpha)
+            bg2.paste(obj, (x_position_other_bg, y_position_other_bg), obj_other_alpha)
+            bg3.paste(obj, (x_position_other_bg, y_position_other_bg), obj_other_alpha)
+            bg4.paste(obj, (x_position_other_bg, y_position_other_bg), obj_other_alpha)
+
+            # Lưu các hình ảnh đã tạo ra
+
+            bg1.save(f'{destination_path_added}\\{img_name_temporary}_bg1.png')
+            bg2.save(f'{destination_path_added}\\{img_name_temporary}_bg2.png')
+            bg3.save(f'{destination_path_added}\\{img_name_temporary}_bg3.png')
+            bg4.save(f'{destination_path_added}\\{img_name_temporary}_bg3.png')
+
+            # print('added new picture')
+            return jsonify({'result': True})
+        else:
+            return 'Đã có lỗi xảy ra!!!'
+    else:
+        return jsonify({'result': False})
 
 if __name__ == "__main__":
     app.run(port=port_flask, debug=True)
