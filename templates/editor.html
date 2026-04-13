@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+
+</head>
+
+<body class="bg-gray-900 text-white overflow-hidden">
+
+    <div class="flex h-screen">
+
+        <!-- CANVAS -->
+        <div id="canvasContainer" class="flex-1 relative overflow-hidden cursor-crosshair">
+
+            <canvas id="canvas"></canvas>
+
+        </div>
+
+        <!-- TOOLBAR -->
+        <div class="w-64 bg-gray-800 p-4 space-y-4">
+
+            <h2 class="text-xl">Editor</h2>
+
+            <input type="color" id="colorPicker" class="w-full">
+
+            <div class="mt-3">
+    <p class="text-sm mb-1">Quick Colors</p>
+        <div class="flex gap-2">
+
+            <div class="quick-color w-8 h-8 rounded cursor-pointer border"
+                data-color="53,85,62"
+                style="background: rgb(53,85,62)">
+            </div>
+
+            <div class="quick-color w-8 h-8 rounded cursor-pointer border"
+                data-color="40,57,33"
+                style="background: rgb(40,57,33)">
+            </div>
+
+            <div class="quick-color w-8 h-8 rounded cursor-pointer border"
+                data-color="28,95,40"
+                style="background: rgb(28,95,40)">
+            </div>
+
+            <div class="quick-color w-8 h-8 rounded cursor-pointer border"
+                data-color="3,44,2"
+                style="background: rgb(3,44,2)">
+            </div>
+
+            <div class="quick-color w-8 h-8 rounded cursor-pointer border"
+                data-color="60,123,64"
+                style="background: rgb(60,123,64)">
+            </div>
+
+        </div>
+    </div>
+
+            <button id="removeTool" class="bg-red-500 w-full py-2 rounded">
+                Remove Tool
+            </button>
+
+            <button id="eraserTool" class="bg-yellow-500 w-full py-2 rounded">
+                Eraser Tool
+            </button>
+
+            <button id="undoBtn" class="bg-gray-600 w-full py-2 rounded">
+                Undo
+            </button>
+
+            <button id="redoBtn" class="bg-gray-600 w-full py-2 rounded">
+                Redo
+            </button>
+
+            <button id="exportBtn" class="bg-green-500 w-full py-2 rounded">
+                Export PNG
+            </button>
+
+            <p class="text-sm">
+                { } = Brush size<br>
+                Wheel = Zoom<br>
+                Drag = Move
+            </p>
+
+        </div>
+
+    </div>
+
+    <script src="/static/js/editor.js"></script>
+
+    <script>
+        const imagePath = "{{image}}"
+        initEditor(imagePath)
+    </script>
+
+</body>
+
+</html>

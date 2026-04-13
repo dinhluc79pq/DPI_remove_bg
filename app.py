@@ -346,6 +346,8 @@ def check_image():
 
     img_number_received = request.json.get('img_number')  # Nhận số từ frontend
 
+    print(img_number_received)
+
     # save name image to use later
     img_name_temporary = img_number_received
 
@@ -381,11 +383,11 @@ def find_directory():
     all_folders = [f for f in os.listdir(base_folder) if os.path.isdir(os.path.join(base_folder, f))]
 
     # Tìm kiếm thư mục tương ứng với 5 hoặc 6 số cuối
-    if len(last_five_digits) <= 5:
-        matching_folder = next((folder for folder in all_folders if folder[-5:] == last_five_digits), None)
+    if len(last_five_digits) <= 4:
+        matching_folder = next((folder for folder in all_folders if folder[-4:] == last_five_digits), None)
         existed_dir_path = matching_folder
     else:
-        matching_folder = next((folder for folder in all_folders if folder[-6:] == last_five_digits), None)
+        matching_folder = next((folder for folder in all_folders if folder[-5:] == last_five_digits), None)
         existed_dir_path = matching_folder
 
     if matching_folder:
@@ -442,7 +444,7 @@ def process():
 
             # Mở tệp ảnh đối tượng
             obj = Image.open(png_img_path).convert("RGBA")
-            
+
             # Mở tệp ảnh các nền khác
             obj_other_alpha = obj.split()[3]
 
@@ -466,7 +468,7 @@ def process():
             bg1.save(f'{destination_path_added}\\{img_name_temporary}_bg1.png')
             bg2.save(f'{destination_path_added}\\{img_name_temporary}_bg2.png')
             bg3.save(f'{destination_path_added}\\{img_name_temporary}_bg3.png')
-            bg4.save(f'{destination_path_added}\\{img_name_temporary}_bg3.png')
+            bg4.save(f'{destination_path_added}\\{img_name_temporary}_bg4.png')
 
             # print('added new picture')
             return jsonify({'result': True})
@@ -474,6 +476,11 @@ def process():
             return 'Đã có lỗi xảy ra!!!'
     else:
         return jsonify({'result': False})
+    
+@app.route("/editor")
+def editor():
+    image = request.args.get("image")
+    return render_template("editor.html", image=image)
 
 if __name__ == "__main__":
     app.run(port=port_flask, debug=True)
