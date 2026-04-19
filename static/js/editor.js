@@ -26,9 +26,12 @@ let bufferCtx = bufferCanvas.getContext("2d")
 
 let colorThreshold = 35
 
+let numGlobal = 0
+let showCursor = true
+
 // ================= INIT =================
 
-function initEditor(src) {
+function initEditor(src, number) {
 
     canvas = document.getElementById("canvas")
     ctx = canvas.getContext("2d")
@@ -48,6 +51,7 @@ function initEditor(src) {
     }
 
     img.src = src
+    numGlobal = number
 
     bindEvents()
 
@@ -230,6 +234,8 @@ function bindEvents() {
         // (optional) highlight UI
         $("#removeTool").addClass("bg-red-700")
         $("#eraserTool").removeClass("bg-yellow-700")
+        showCursor = true
+        
 
     })
 
@@ -248,6 +254,9 @@ function bindEvents() {
 
         eraserMode = true
         removeMode = false
+
+        console.log(eraserMode);
+        
 
         $("#eraserTool").addClass("bg-yellow-700")
         $("#removeTool").removeClass("bg-red-700")
@@ -273,8 +282,13 @@ function bindEvents() {
 
     // Export
     $("#exportBtn").click(() => {
+        console.log(numGlobal);
+        showCursor = false
+        draw()
+        
         let link = document.createElement('a')
-        link.download = "output.png"
+        file_name = "img" + numGlobal + ".png"
+        link.download = file_name
         link.href = canvas.toDataURL("image/png")
         link.click()
     })
@@ -285,21 +299,23 @@ function bindEvents() {
 
 function removeColorCircle(cx, cy) {
 
-    // convert về tọa độ ảnh gốc
     let x = (cx - offsetX) / scale
     let y = (cy - offsetY) / scale
 
     let radius = brushSize / scale
 
+    let startX = Math.floor(x - radius)
+    let startY = Math.floor(y - radius)
+
     let size = Math.ceil(radius * 2)
 
-    let imageData = bufferCtx.getImageData(
-        Math.floor(x - radius),
-        Math.floor(y - radius),
-        size,
-        size
-    )
+    // 🔥 FIX QUAN TRỌNG: clamp bounds
+    if (startX < 0) startX = 0
+    if (startY < 0) startY = 0
+    if (startX + size > bufferCanvas.width) size = bufferCanvas.width - startX
+    if (startY + size > bufferCanvas.height) size = bufferCanvas.height - startY
 
+    let imageData = bufferCtx.getImageData(startX, startY, size, size)
     let data = imageData.data
 
     for (let j = 0; j < size; j++) {
@@ -323,19 +339,15 @@ function removeColorCircle(cx, cy) {
             )
 
             if (dist <= colorThreshold) {
-                let smooth = 1 - dist / 10
-                data[index + 3] *= smooth
-            }
 
+                let smooth = 1 - dist / colorThreshold
+                data[index + 3] *= smooth
+
+            }
         }
     }
 
-    bufferCtx.putImageData(
-        imageData,
-        Math.floor(x - radius),
-        Math.floor(y - radius)
-    )
-
+    bufferCtx.putImageData(imageData, startX, startY)
 }
 
 // ================= UTIL =================
@@ -353,6 +365,8 @@ function hexToRgb(hex) {
 }
 
 function drawCursor(x, y) {
+
+    if (!showCursor) return
 
     ctx.save()
 
@@ -393,4 +407,49 @@ function rgbToHex(r, g, b) {
         .map(x => x.toString(16).padStart(2, '0'))
         .join('')
 
+}
+
+function eraseCircle(cx, cy){
+
+    // 👉 chuyển tọa độ canvas → ảnh gốc
+    let x = (cx - offsetX) / scale
+    let y = (cy - offsetY) / scale
+
+    let radius = brushSize / scale
+
+    let startX = Math.floor(x - radius)
+    let startY = Math.floor(y - radius)
+
+    let size = Math.ceil(radius * 2)
+
+    // 👉 tránh out of bounds
+    if(startX < 0) startX = 0
+    if(startY < 0) startY = 0
+    if(startX + size > bufferCanvas.width) size = bufferCanvas.width - startX
+    if(startY + size > bufferCanvas.height) size = bufferCanvas.height - startY
+
+    let imageData = bufferCtx.getImageData(startX, startY, size, size)
+    let data = imageData.data
+
+    for(let j = 0; j < size; j++){
+        for(let i = 0; i < size; i++){
+
+            let dx = i - radius
+            let dy = j - radius
+
+            // 👉 chỉ xử lý trong hình tròn
+            if(dx*dx + dy*dy > radius*radius) continue
+
+            let index = (j * size + i) * 4
+
+            // 🔥 feather (mịn viền)
+            let dist = Math.sqrt(dx*dx + dy*dy)
+            let feather = 1 - (dist / radius)
+
+            data[index + 3] *= feather
+
+        }
+    }
+
+    bufferCtx.putImageData(imageData, startX, startY)
 }

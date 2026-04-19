@@ -217,7 +217,11 @@ $(document).ready(function() {
     });
 
     $("#editBtn").click(function(){
-        window.location = "/editor?image=/static/results/img" + $("#preview").attr("data-number") + ".png"
+        let number = $("#err_imgNumber").val()
+        console.log(number);    
+        
+        path = "/editor?image=/static/results/img" + number + ".png&number=" + number;
+        window.open(path, "_blank");
     });
 
 });

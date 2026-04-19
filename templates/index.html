@@ -47,8 +47,8 @@
                     </button>
 
                     <button id="editBtn"
-                    class="mt-5 px-6 py-2 bg-blue-500 text-white rounded">
-                    EDIT
+                    class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
+                    Chỉnh sửa
                     </button>
 
                     <!-- Nút Căn giữa -->
@@ -83,34 +83,6 @@
                 id="remove_bg">
                 Tách nền
             </button>
-        </div>
-
-        <div class="add_files_container">
-            <p class="sub-title">1. Thêm file ảnh cho khách</p>
-            <div class="add_files_row">
-                <div class="files_printed">
-                    <label for="lastFiveDigits">Ảnh đã in: </label>
-                    <input type="text" id="lastFiveDigits" name="last_five_digits" required
-                        placeholder="Nhập số hình ảnh">
-                    <button onclick="check_dir()"><i class="fa-solid fa-magnifying-glass"></i></button>
-                </div>
-                <div class="files_more">
-                    <label for="imgNumber">Ảnh cần thêm: </label>
-                    <input type="text" id="imgNumber" placeholder="Nhập số hình ảnh" name="find_img_add" required>
-                    <button onclick="checkImage()"><i class="fa-solid fa-magnifying-glass"></i></button>
-                </div>
-            </div>
-            <div class="img_display">
-                <div class="img_printed">
-                    <p id="result1"></p>
-                    <div id="check_dir_img"></div>
-                </div>
-                <div class="img_more">
-                    <p id="result"></p>
-                    <div id="imageContainer"></div>
-                </div>
-            </div>
-            <button class="btn_submit" id="add_more_images">Thêm ảnh điện tử</button>
         </div>
     </div>
 

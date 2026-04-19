@@ -31,23 +31,23 @@
         <div class="flex gap-2">
 
             <div class="quick-color w-8 h-8 rounded cursor-pointer border"
-                data-color="53,85,62"
-                style="background: rgb(53,85,62)">
+                data-color="78,117,74"
+                style="background: rgb(78,117,74)">
             </div>
 
             <div class="quick-color w-8 h-8 rounded cursor-pointer border"
-                data-color="40,57,33"
-                style="background: rgb(40,57,33)">
+                data-color="29,94,33"
+                style="background: rgb(29,94,33)">
             </div>
 
             <div class="quick-color w-8 h-8 rounded cursor-pointer border"
-                data-color="28,95,40"
-                style="background: rgb(28,95,40)">
+                data-color="31,49,9"
+                style="background: rgb(31,49,9)">
             </div>
 
             <div class="quick-color w-8 h-8 rounded cursor-pointer border"
-                data-color="3,44,2"
-                style="background: rgb(3,44,2)">
+                data-color="98,132,106"
+                style="background: rgb(98,132,106)">
             </div>
 
             <div class="quick-color w-8 h-8 rounded cursor-pointer border"
@@ -92,7 +92,11 @@
 
     <script>
         const imagePath = "{{image}}"
-        initEditor(imagePath)
+        const numImg = "{{number}}"
+
+        console.log(numImg);
+        
+        initEditor(imagePath, numImg)
     </script>
 
 </body>
