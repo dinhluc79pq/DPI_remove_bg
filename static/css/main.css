@@ -376,3 +376,7 @@ p#result, #err_result {
     border-radius: 5px;
     z-index: 9999;
 }
+
+#colorPicker {
+    min-height: 50px;
+}

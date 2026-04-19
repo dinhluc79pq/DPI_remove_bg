@@ -481,6 +481,9 @@ def backup_images(img_number):
 def editor():
     image = request.args.get("image")
     number = request.args.get("number")
+    save_img_path = os.path.join(image_src_path, f"img{number}.png")
+
+    os.remove(save_img_path)
     return render_template("editor.html", image=image, number=number)
 
 # @app.route("/save-image", methods=["POST"])

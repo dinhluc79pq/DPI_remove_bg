@@ -6,7 +6,7 @@ let scale = 1
 let offsetX = 0
 let offsetY = 0
 
-let brushSize = 20
+let brushSize = 25
 let selectedColor = [0, 0, 0]
 
 let isDragging = false
@@ -24,10 +24,17 @@ let isDrawing = false
 let bufferCanvas = document.createElement("canvas")
 let bufferCtx = bufferCanvas.getContext("2d")
 
-let colorThreshold = 35
+let colorThreshold = 40
 
 let numGlobal = 0
 let showCursor = true
+
+let imageFrame = {
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0
+}
 
 // ================= INIT =================
 
@@ -42,6 +49,8 @@ function initEditor(src, number) {
 
         bufferCanvas.width = img.width
         bufferCanvas.height = img.height
+
+        bufferCtx.setTransform(1, 0, 0, 1, 0, 0)
 
         bufferCtx.drawImage(img, 0, 0)
 
@@ -74,6 +83,12 @@ function fitImage() {
     offsetX = (canvas.width - img.width * scale) / 2
     offsetY = (canvas.height - img.height * scale) / 2
 
+    imageFrame.width = img.width
+    imageFrame.height = img.height
+
+    imageFrame.x = offsetX
+    imageFrame.y = offsetY
+
     draw()
 
 }
@@ -88,6 +103,9 @@ function draw() {
     ctx.scale(scale, scale)
 
     ctx.drawImage(bufferCanvas, 0, 0)
+    ctx.strokeStyle = "white"
+    ctx.lineWidth = 2 / scale
+    ctx.strokeRect(0, 0, img.width, img.height)
 
     ctx.restore()
 
@@ -203,6 +221,20 @@ function bindEvents() {
 
     })
 
+    document.addEventListener("keydown", e => {
+
+        if (e.ctrlKey && e.key === "z") {
+            e.preventDefault()
+            $("#undoBtn").click()
+        }
+
+        if (e.ctrlKey && e.key === "y") {
+            e.preventDefault()
+            $("#redoBtn").click()
+        }
+
+    })
+
 
     // Space down
     document.addEventListener("keydown", e => {
@@ -235,7 +267,7 @@ function bindEvents() {
         $("#removeTool").addClass("bg-red-700")
         $("#eraserTool").removeClass("bg-yellow-700")
         showCursor = true
-        
+
 
     })
 
@@ -286,10 +318,19 @@ function bindEvents() {
         showCursor = false
         draw()
         
+        let exportCanvas = document.createElement("canvas")
+        let exportCtx = exportCanvas.getContext("2d")
+
+        // 🔥 dùng đúng size buffer
+        exportCanvas.width = bufferCanvas.width
+        exportCanvas.height = bufferCanvas.height
+
+        exportCtx.drawImage(bufferCanvas, 0, 0)
+        
         let link = document.createElement('a')
         file_name = "img" + numGlobal + ".png"
         link.download = file_name
-        link.href = canvas.toDataURL("image/png")
+        link.href = exportCanvas.toDataURL("image/png")
         link.click()
     })
 
@@ -340,7 +381,7 @@ function removeColorCircle(cx, cy) {
 
             if (dist <= colorThreshold) {
 
-                let smooth = 1 - dist / colorThreshold
+                let smooth = 1 - dist / 10
                 data[index + 3] *= smooth
 
             }
@@ -444,6 +485,7 @@ function eraseCircle(cx, cy){
 
             // 🔥 feather (mịn viền)
             let dist = Math.sqrt(dx*dx + dy*dy)
+         
             let feather = 1 - (dist / radius)
 
             data[index + 3] *= feather
