@@ -36,6 +36,20 @@ let imageFrame = {
     height: 0
 }
 
+// ===== SELECT STATE =====
+let selectMode = false
+let selection = null
+let selectionData = null
+
+let isSelecting = false
+let isMovingSelection = false
+
+let startSelX = 0
+let startSelY = 0
+
+let selectionCanvas = document.createElement("canvas")
+let selectionCtx = selectionCanvas.getContext("2d")
+
 // ================= INIT =================
 
 function initEditor(src, number) {
@@ -98,17 +112,50 @@ function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
     ctx.save()
-
     ctx.translate(offsetX, offsetY)
     ctx.scale(scale, scale)
 
     ctx.drawImage(bufferCanvas, 0, 0)
+
     ctx.strokeStyle = "white"
     ctx.lineWidth = 2 / scale
     ctx.strokeRect(0, 0, img.width, img.height)
 
     ctx.restore()
 
+    // ===== FLOATING SELECTION (PREVIEW) =====
+    if (selection && selectionData) {
+
+        ctx.save()
+        ctx.translate(offsetX, offsetY)
+        ctx.scale(scale, scale)
+
+        let px = (selection.x - offsetX) / scale
+        let py = (selection.y - offsetY) / scale
+
+        ctx.drawImage(selectionCanvas, px, py)
+
+        ctx.restore()
+
+        // viền
+        ctx.save()
+        ctx.strokeStyle = "cyan"
+        ctx.setLineDash([6,4])
+        ctx.strokeRect(selection.x, selection.y, selection.w, selection.h)
+        ctx.restore()
+    }
+}
+
+function isInsideSelection(x, y){
+
+    if(!selection) return false
+
+    return (
+        x >= selection.x &&
+        y >= selection.y &&
+        x <= selection.x + selection.w &&
+        y <= selection.y + selection.h
+    )
 }
 
 // ================= EVENTS =================
@@ -134,6 +181,23 @@ function bindEvents() {
             canvas.style.cursor = "default"
         }
 
+        if (selectMode && isSelecting) {
+            selection = {
+                x: Math.min(startSelX, x),
+                y: Math.min(startSelY, y),
+                w: Math.abs(x - startSelX),
+                h: Math.abs(y - startSelY)
+            }
+        }
+
+        if (isMovingSelection && selection) {
+            let dx = x - lastX
+            let dy = y - lastY
+
+            selection.x += dx
+            selection.y += dy
+        }
+
         // remove chỉ khi đang giữ chuột
         if (!isSpacePressed && isDrawing) {
 
@@ -146,6 +210,7 @@ function bindEvents() {
             }
 
         }
+
         // redraw + cursor
         draw()
         drawCursor(x, y)
@@ -155,7 +220,61 @@ function bindEvents() {
 
     })
 
-    canvas.addEventListener("mousedown", () => {
+
+
+    canvas.addEventListener("mousedown", (e) => {
+
+        let rect = canvas.getBoundingClientRect()
+        let x = e.clientX - rect.left
+        let y = e.clientY - rect.top
+
+        // 👉 Nếu đang có selection
+        if (selection && selectionData) {
+
+            if (isInsideSelection(x, y)) {
+
+                isMovingSelection = true
+                lastX = x
+                lastY = y
+
+                // ===== 🔥 CUT: xóa vùng gốc =====
+                let sx = (selection.x - offsetX) / scale
+                let sy = (selection.y - offsetY) / scale
+                let sw = selection.w / scale
+                let sh = selection.h / scale
+
+                sx = Math.floor(sx)
+                sy = Math.floor(sy)
+                sw = Math.floor(sw)
+                sh = Math.floor(sh)
+
+                let imgData = bufferCtx.getImageData(sx, sy, sw, sh)
+
+                for (let i = 0; i < imgData.data.length; i += 4) {
+                    imgData.data[i + 3] = 0 // 👉 clear alpha
+                }
+
+                bufferCtx.putImageData(imgData, sx, sy)
+
+                draw()
+
+                return
+            } else {
+                // 👉 CLICK NGOÀI → COMMIT
+                commitSelection()
+            }
+        }
+
+        if (selectMode) {
+
+            isSelecting = true
+            startSelX = x
+            startSelY = y
+            selection = null
+            return
+        }
+
+        // ===== PHẦN CŨ GIỮ NGUYÊN =====
 
         if (isSpacePressed) {
             isDragging = true
@@ -171,6 +290,34 @@ function bindEvents() {
     })
 
     canvas.addEventListener("mouseup", () => {
+
+        if (selectMode && isSelecting) {
+
+            isSelecting = false
+
+            let x = (selection.x - offsetX) / scale
+            let y = (selection.y - offsetY) / scale
+            let w = selection.w / scale
+            let h = selection.h / scale
+
+            x = Math.floor(x)
+            y = Math.floor(y)
+            w = Math.floor(w)
+            h = Math.floor(h)
+
+            // 👉 lấy vùng chọn
+            selectionData = bufferCtx.getImageData(x, y, w, h)
+            selectionCanvas.width = w
+            selectionCanvas.height = h
+            selectionCtx.putImageData(selectionData, 0, 0)
+
+            // 👉 KHÔNG clear nữa (floating overlay)
+        }
+
+        if (isMovingSelection) {
+            isMovingSelection = false
+        }
+
         isDrawing = false
         isDragging = false
         saveState()
@@ -221,7 +368,62 @@ function bindEvents() {
 
     })
 
+    $("#selectTool").click(() => {
+
+        selectMode = true
+        removeMode = false
+        eraserMode = false
+
+        $("#selectTool").addClass("bg-blue-800")
+        $("#removeTool").removeClass("bg-red-700")
+        $("#eraserTool").removeClass("bg-yellow-700")
+    })
+
     document.addEventListener("keydown", e => {
+
+        // COPY
+        if (e.ctrlKey && e.key === "c") {
+            if (selectionData) {
+                window._copyData = selectionData
+            }
+        }
+
+        // PASTE
+        if (e.ctrlKey && e.key === "v") {
+            if (window._copyData) {
+
+                let x = (selection.x - offsetX) / scale
+                let y = (selection.y - offsetY) / scale
+
+                bufferCtx.putImageData(window._copyData, x + 20, y + 20)
+
+                draw()
+                saveState()
+            }
+        }
+
+        // DELETE
+        if (e.key === "Backspace" && selection) {
+
+            let x = (selection.x - offsetX) / scale
+            let y = (selection.y - offsetY) / scale
+            let w = selection.w / scale
+            let h = selection.h / scale
+
+            let imgData = bufferCtx.getImageData(x, y, w, h)
+
+            for(let i=0;i<imgData.data.length;i+=4){
+                imgData.data[i+3] = 0
+            }
+
+            bufferCtx.putImageData(imgData, x, y)
+            
+            selection = null
+            selectionData = null
+
+            draw()
+            saveState()
+        }
 
         if (e.ctrlKey && e.key === "z") {
             e.preventDefault()
@@ -276,6 +478,7 @@ function bindEvents() {
 
         removeMode = true
         eraserMode = false
+        selectMode = false
 
         $("#removeTool").addClass("bg-red-700")
         $("#eraserTool").removeClass("bg-yellow-700")
@@ -286,9 +489,7 @@ function bindEvents() {
 
         eraserMode = true
         removeMode = false
-
-        console.log(eraserMode);
-        
+        selectMode = false
 
         $("#eraserTool").addClass("bg-yellow-700")
         $("#removeTool").removeClass("bg-red-700")
@@ -350,7 +551,7 @@ function removeColorCircle(cx, cy) {
 
     let size = Math.ceil(radius * 2)
 
-    // 🔥 FIX QUAN TRỌNG: clamp bounds
+    // clamp bounds
     if (startX < 0) startX = 0
     if (startY < 0) startY = 0
     if (startX + size > bufferCanvas.width) size = bufferCanvas.width - startX
@@ -359,13 +560,18 @@ function removeColorCircle(cx, cy) {
     let imageData = bufferCtx.getImageData(startX, startY, size, size)
     let data = imageData.data
 
+    // 🔥 config PRO
+    let threshold = colorThreshold * 1.4   // mở rộng vùng bắt màu
+    let radiusSq = radius * radius
+
     for (let j = 0; j < size; j++) {
         for (let i = 0; i < size; i++) {
 
             let dx = i - radius
             let dy = j - radius
 
-            if (dx * dx + dy * dy > radius * radius) continue
+            let distSq = dx * dx + dy * dy
+            if (distSq > radiusSq) continue
 
             let index = (j * size + i) * 4
 
@@ -373,17 +579,29 @@ function removeColorCircle(cx, cy) {
             let g = data[index + 1]
             let b = data[index + 2]
 
-            let dist = Math.sqrt(
-                (r - selectedColor[0]) ** 2 +
-                (g - selectedColor[1]) ** 2 +
-                (b - selectedColor[2]) ** 2
-            )
+            // 🔥 distance màu (không sqrt để tối ưu)
+            let dr = r - selectedColor[0]
+            let dg = g - selectedColor[1]
+            let db = b - selectedColor[2]
 
-            if (dist <= colorThreshold) {
+            let colorDist = Math.sqrt(dr * dr + dg * dg + db * db)
 
-                let smooth = 1 - dist / 10
-                data[index + 3] *= smooth
+            if (colorDist < threshold) {
 
+                // ===== Gaussian theo brush (mịn hình tròn) =====
+                let brushFalloff = Math.exp(-distSq / (2 * radiusSq))
+
+                // ===== falloff theo màu (xử lý viền) =====
+                let t = colorDist / threshold
+                let colorFalloff = Math.pow(1 - t, 2)
+
+                // ===== combine (PRO) =====
+                let strength = brushFalloff * colorFalloff
+
+                // 👉 tăng lực xóa trung tâm
+                let boost = 1.2
+
+                data[index + 3] *= Math.max(0, 1 - strength * boost)
             }
         }
     }
@@ -472,26 +690,47 @@ function eraseCircle(cx, cy){
     let imageData = bufferCtx.getImageData(startX, startY, size, size)
     let data = imageData.data
 
-    for(let j = 0; j < size; j++){
-        for(let i = 0; i < size; i++){
+    for (let j = 0; j < size; j++) {
+        for (let i = 0; i < size; i++) {
 
             let dx = i - radius
             let dy = j - radius
 
-            // 👉 chỉ xử lý trong hình tròn
-            if(dx*dx + dy*dy > radius*radius) continue
+            // chỉ xử lý trong hình tròn
+            let distSq = dx * dx + dy * dy
+            if (distSq > radius * radius) continue
 
             let index = (j * size + i) * 4
 
-            // 🔥 feather (mịn viền)
-            let dist = Math.sqrt(dx*dx + dy*dy)
-         
-            let feather = 1 - (dist / radius)
+            // 🔥 Gaussian falloff (pro)
+            let feather = Math.exp(-(distSq) / (2 * radius * radius))
 
-            data[index + 3] *= feather
+            // 🔥 strength (có thể chỉnh)
+            let strength = 0.9
 
+            // 👉 xóa mượt + mạnh ở tâm
+            data[index + 3] *= (1 - feather * strength)
         }
     }
 
     bufferCtx.putImageData(imageData, startX, startY)
+}
+
+function commitSelection(){
+
+    if (!selection || !selectionData) return
+
+    let x = (selection.x - offsetX) / scale
+    let y = (selection.y - offsetY) / scale
+
+    x = Math.floor(x)
+    y = Math.floor(y)
+
+    bufferCtx.putImageData(selectionData, x, y)
+
+    selection = null
+    selectionData = null
+
+    saveState()
+    draw()
 }
